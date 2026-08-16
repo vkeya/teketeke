@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
+import ExecutiveDecisionPanelContainer from "../../components/dashboard/ExecutiveDecisionPanelContainer";
 import { dashboardData } from "../../data/teketeke_dashboard_data";
 import businessInsights from "../../data/business_insights.json";
 import AskTeketeke from "../../components/AskTeketeke";
@@ -216,6 +216,8 @@ export default function DashboardPage() {
             negative={!uploadedAnalysis}
           />
         </section>
+		
+		<ExecutiveDecisionPanelContainer />
 
         {/* PERFORMANCE */}
 
