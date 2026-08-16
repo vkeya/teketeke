@@ -1,113 +1,125 @@
+import OpenAI from "openai";
 import { NextResponse } from "next/server";
-import businessContext from "../../../data/ai_business_context.json";
 
-type AskRequest = {
-  question?: string;
-};
+import businessContext from "../../../data/ai_business_context.json";
+import businessInsights from "../../../data/business_insights.json";
+
+const client = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 const SYSTEM_INSTRUCTION = `
 You are Teketeke Business Analyst.
 
-Your job is to help a business executive understand their business data.
+You help business owners understand their business performance.
 
-STRICT RULES:
-1. Use only the supplied Teketeke business context.
-2. Never invent financial figures, customers, markets, trends, or facts.
-3. When making an important conclusion, cite the relevant metric or evidence in plain language.
+Your answers must be grounded ONLY in the supplied Teketeke business data
+and generated business insights.
+
+Rules:
+
+1. Never invent financial figures.
+2. Never invent customers, markets, products or trends.
+3. When making an important conclusion, explain the evidence.
 4. Clearly distinguish FACTS from RECOMMENDATIONS.
-5. If the supplied data cannot answer the question, say that the available data is insufficient.
-6. Keep answers concise, practical, and executive-friendly.
-7. When useful, structure the answer as:
-   - Answer
-   - Evidence
-   - Recommended action
+5. If the available data cannot answer the question, say so.
+6. Do not present assumptions as facts.
+7. Keep the answer concise and executive-friendly.
+8. Give practical actions where appropriate.
+
+Preferred response structure:
+
+ANSWER
+A direct answer to the question.
+
+EVIDENCE
+The important numbers or findings supporting the answer.
+
+RECOMMENDED ACTION
+What the business owner should consider doing next.
 `;
 
 export async function POST(request: Request) {
   try {
-    const body = (await request.json()) as AskRequest;
-    const question = body.question?.trim();
+    if (!process.env.OPENAI_API_KEY) {
+      return NextResponse.json(
+        {
+          error: "OPENAI_API_KEY is not configured.",
+        },
+        { status: 500 }
+      );
+    }
+
+    const body = await request.json();
+
+    const question =
+      typeof body.question === "string"
+        ? body.question.trim()
+        : "";
 
     if (!question) {
       return NextResponse.json(
-        { error: "A business question is required." },
+        {
+          error: "Please provide a business question.",
+        },
         { status: 400 }
       );
     }
 
     if (question.length > 500) {
       return NextResponse.json(
-        { error: "Question must be 500 characters or fewer." },
+        {
+          error: "Question must be 500 characters or fewer.",
+        },
         { status: 400 }
       );
     }
 
-    const apiKey = process.env.OPENAI_API_KEY;
+    const context = {
+      businessData: businessContext,
+      generatedInsights: businessInsights,
+    };
 
-    if (!apiKey) {
-      return NextResponse.json(
-        { error: "OPENAI_API_KEY is not configured on the server." },
-        { status: 500 }
-      );
-    }
+    const response = await client.responses.create({
+      model: "gpt-5.6",
+      instructions: SYSTEM_INSTRUCTION,
+      input: [
+        {
+          role: "user",
+          content: `
+Here is the trusted Teketeke business context:
 
-    const response = await fetch("https://api.openai.com/v1/responses", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-5.6",
-        input: [
-          {
-            role: "system",
-            content: SYSTEM_INSTRUCTION,
-          },
-          {
-            role: "user",
-            content: [
-              "Business context:",
-              JSON.stringify(businessContext),
-              "",
-              `Executive question: ${question}`,
-            ].join("\n"),
-          },
-        ],
-      }),
+${JSON.stringify(context)}
+
+Executive question:
+
+${question}
+          `,
+        },
+      ],
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-
-      console.error("Teketeke OpenAI API error:", errorText);
-
-      return NextResponse.json(
-        { error: "The AI Business Analyst could not complete the request." },
-        { status: 502 }
-      );
-    }
-
-    const data = await response.json();
-    const answer =
-      typeof data.output_text === "string" ? data.output_text.trim() : "";
+    const answer = response.output_text?.trim();
 
     if (!answer) {
       return NextResponse.json(
-        { error: "The AI Business Analyst returned no answer." },
+        {
+          error: "Teketeke could not generate an answer.",
+        },
         { status: 502 }
       );
     }
 
     return NextResponse.json({
       answer,
-      intent: "business_analysis",
     });
   } catch (error) {
-    console.error("Teketeke Ask API error:", error);
+    console.error("Ask Teketeke error:", error);
 
     return NextResponse.json(
-      { error: "Unable to process the business question." },
+      {
+        error: "Unable to process the business question.",
+      },
       { status: 500 }
     );
   }
