@@ -1,0 +1,374 @@
+{
+  "purpose": "Grounding context for Teketeke AI Business Analyst.",
+  "data_period": {
+    "start": "2024-01-01",
+    "end": "2025-12-31",
+    "months": 24
+  },
+  "executive_metrics": {
+    "revenue": 113371495.96,
+    "cost": 69225551.09,
+    "gross_profit": 44145944.87,
+    "gross_margin_pct": 38.94,
+    "transactions": 10000,
+    "customers": 80,
+    "units_sold": 41316
+  },
+  "monthly_performance": [
+    {
+      "month": "2024-01",
+      "revenue": 4547490.1,
+      "gross_profit": 1757252.75,
+      "growth_pct": null,
+      "gross_margin_pct": 38.64
+    },
+    {
+      "month": "2024-02",
+      "revenue": 3973292.0,
+      "gross_profit": 1590791.73,
+      "growth_pct": -12.63,
+      "gross_margin_pct": 40.04
+    },
+    {
+      "month": "2024-03",
+      "revenue": 5058786.17,
+      "gross_profit": 1992112.15,
+      "growth_pct": 27.32,
+      "gross_margin_pct": 39.38
+    },
+    {
+      "month": "2024-04",
+      "revenue": 4426554.96,
+      "gross_profit": 1735080.6,
+      "growth_pct": -12.5,
+      "gross_margin_pct": 39.2
+    },
+    {
+      "month": "2024-05",
+      "revenue": 4528519.8,
+      "gross_profit": 1791888.44,
+      "growth_pct": 2.3,
+      "gross_margin_pct": 39.57
+    },
+    {
+      "month": "2024-06",
+      "revenue": 4561282.04,
+      "gross_profit": 1769019.13,
+      "growth_pct": 0.72,
+      "gross_margin_pct": 38.78
+    },
+    {
+      "month": "2024-07",
+      "revenue": 4993324.34,
+      "gross_profit": 1946921.21,
+      "growth_pct": 9.47,
+      "gross_margin_pct": 38.99
+    },
+    {
+      "month": "2024-08",
+      "revenue": 4155677.21,
+      "gross_profit": 1587353.12,
+      "growth_pct": -16.78,
+      "gross_margin_pct": 38.2
+    },
+    {
+      "month": "2024-09",
+      "revenue": 4309716.67,
+      "gross_profit": 1655345.72,
+      "growth_pct": 3.71,
+      "gross_margin_pct": 38.41
+    },
+    {
+      "month": "2024-10",
+      "revenue": 4491188.55,
+      "gross_profit": 1758520.75,
+      "growth_pct": 4.21,
+      "gross_margin_pct": 39.15
+    },
+    {
+      "month": "2024-11",
+      "revenue": 4022657.06,
+      "gross_profit": 1597768.13,
+      "growth_pct": -10.43,
+      "gross_margin_pct": 39.72
+    },
+    {
+      "month": "2024-12",
+      "revenue": 4560356.06,
+      "gross_profit": 1813349.53,
+      "growth_pct": 13.37,
+      "gross_margin_pct": 39.76
+    },
+    {
+      "month": "2025-01",
+      "revenue": 4773143.26,
+      "gross_profit": 1891369.41,
+      "growth_pct": 4.67,
+      "gross_margin_pct": 39.63
+    },
+    {
+      "month": "2025-02",
+      "revenue": 5118938.82,
+      "gross_profit": 2007757.1,
+      "growth_pct": 7.24,
+      "gross_margin_pct": 39.22
+    },
+    {
+      "month": "2025-03",
+      "revenue": 5200589.8,
+      "gross_profit": 2044400.36,
+      "growth_pct": 1.6,
+      "gross_margin_pct": 39.31
+    },
+    {
+      "month": "2025-04",
+      "revenue": 5382353.59,
+      "gross_profit": 2109925.27,
+      "growth_pct": 3.5,
+      "gross_margin_pct": 39.2
+    },
+    {
+      "month": "2025-05",
+      "revenue": 5420549.01,
+      "gross_profit": 2120158.47,
+      "growth_pct": 0.71,
+      "gross_margin_pct": 39.11
+    },
+    {
+      "month": "2025-06",
+      "revenue": 4777701.21,
+      "gross_profit": 1830790.14,
+      "growth_pct": -11.86,
+      "gross_margin_pct": 38.32
+    },
+    {
+      "month": "2025-07",
+      "revenue": 4817723.94,
+      "gross_profit": 1844141.96,
+      "growth_pct": 0.84,
+      "gross_margin_pct": 38.28
+    },
+    {
+      "month": "2025-08",
+      "revenue": 5318429.66,
+      "gross_profit": 2029941.61,
+      "growth_pct": 10.39,
+      "gross_margin_pct": 38.17
+    },
+    {
+      "month": "2025-09",
+      "revenue": 4343812.0,
+      "gross_profit": 1688011.43,
+      "growth_pct": -18.33,
+      "gross_margin_pct": 38.86
+    },
+    {
+      "month": "2025-10",
+      "revenue": 5370322.58,
+      "gross_profit": 2026109.17,
+      "growth_pct": 23.63,
+      "gross_margin_pct": 37.73
+    },
+    {
+      "month": "2025-11",
+      "revenue": 4498575.76,
+      "gross_profit": 1740795.79,
+      "growth_pct": -16.23,
+      "gross_margin_pct": 38.7
+    },
+    {
+      "month": "2025-12",
+      "revenue": 4720511.37,
+      "gross_profit": 1817140.9,
+      "growth_pct": 4.93,
+      "gross_margin_pct": 38.49
+    }
+  ],
+  "country_performance": [
+    {
+      "country": "Kenya",
+      "revenue": 48917938.87,
+      "gross_profit": 18998594.41,
+      "margin_pct": 38.84,
+      "share_pct": 43.15
+    },
+    {
+      "country": "Uganda",
+      "revenue": 21340513.4,
+      "gross_profit": 8237908.55,
+      "margin_pct": 38.6,
+      "share_pct": 18.82
+    },
+    {
+      "country": "Tanzania",
+      "revenue": 19913096.13,
+      "gross_profit": 7745129.45,
+      "margin_pct": 38.89,
+      "share_pct": 17.56
+    },
+    {
+      "country": "Rwanda",
+      "revenue": 14917565.95,
+      "gross_profit": 5891339.25,
+      "margin_pct": 39.49,
+      "share_pct": 13.16
+    },
+    {
+      "country": "South Sudan",
+      "revenue": 8282381.61,
+      "gross_profit": 3272973.21,
+      "margin_pct": 39.52,
+      "share_pct": 7.31
+    }
+  ],
+  "product_performance": [
+    {
+      "product": "Carrier Router",
+      "revenue": 30348252.28,
+      "gross_profit": 10982076.4,
+      "margin_pct": 36.19
+    },
+    {
+      "product": "Enterprise Firewall",
+      "revenue": 23006523.12,
+      "gross_profit": 9845401.86,
+      "margin_pct": 42.79
+    },
+    {
+      "product": "Core Switch",
+      "revenue": 19743184.77,
+      "gross_profit": 7158458.1,
+      "margin_pct": 36.26
+    },
+    {
+      "product": "Fiber OLT",
+      "revenue": 17594032.43,
+      "gross_profit": 5481091.09,
+      "margin_pct": 31.15
+    },
+    {
+      "product": "Enterprise Router",
+      "revenue": 8429803.85,
+      "gross_profit": 3115491.95,
+      "margin_pct": 36.96
+    },
+    {
+      "product": "Network Support",
+      "revenue": 7236334.03,
+      "gross_profit": 4848836.1,
+      "margin_pct": 67.01
+    },
+    {
+      "product": "Managed Switch",
+      "revenue": 4204255.52,
+      "gross_profit": 1654866.93,
+      "margin_pct": 39.36
+    },
+    {
+      "product": "Wireless Access Point",
+      "revenue": 1958105.76,
+      "gross_profit": 806266.18,
+      "margin_pct": 41.18
+    },
+    {
+      "product": "Optical Transceiver",
+      "revenue": 851004.2,
+      "gross_profit": 253456.26,
+      "margin_pct": 29.78
+    }
+  ],
+  "top_customers": [
+    {
+      "customer_name": "Customer 001",
+      "revenue": 25137003.89,
+      "share_pct": 22.17
+    },
+    {
+      "customer_name": "Customer 064",
+      "revenue": 1518487.09,
+      "share_pct": 1.34
+    },
+    {
+      "customer_name": "Customer 015",
+      "revenue": 1493494.25,
+      "share_pct": 1.32
+    },
+    {
+      "customer_name": "Customer 049",
+      "revenue": 1428676.83,
+      "share_pct": 1.26
+    },
+    {
+      "customer_name": "Customer 019",
+      "revenue": 1416240.97,
+      "share_pct": 1.25
+    },
+    {
+      "customer_name": "Customer 003",
+      "revenue": 1415004.3,
+      "share_pct": 1.25
+    },
+    {
+      "customer_name": "Customer 021",
+      "revenue": 1363560.77,
+      "share_pct": 1.2
+    },
+    {
+      "customer_name": "Customer 065",
+      "revenue": 1355141.95,
+      "share_pct": 1.2
+    },
+    {
+      "customer_name": "Customer 029",
+      "revenue": 1342157.62,
+      "share_pct": 1.18
+    },
+    {
+      "customer_name": "Customer 042",
+      "revenue": 1318171.3,
+      "share_pct": 1.16
+    },
+    {
+      "customer_name": "Customer 072",
+      "revenue": 1312743.7,
+      "share_pct": 1.16
+    },
+    {
+      "customer_name": "Customer 052",
+      "revenue": 1309525.69,
+      "share_pct": 1.16
+    },
+    {
+      "customer_name": "Customer 014",
+      "revenue": 1307991.72,
+      "share_pct": 1.15
+    },
+    {
+      "customer_name": "Customer 048",
+      "revenue": 1285411.9,
+      "share_pct": 1.13
+    },
+    {
+      "customer_name": "Customer 069",
+      "revenue": 1278239.5,
+      "share_pct": 1.13
+    }
+  ],
+  "payment_status": [
+    {
+      "payment_status": "Overdue",
+      "revenue": 10035111.31,
+      "share_pct": 8.85
+    },
+    {
+      "payment_status": "Paid",
+      "revenue": 88271000.71,
+      "share_pct": 77.86
+    },
+    {
+      "payment_status": "Pending",
+      "revenue": 15065383.94,
+      "share_pct": 13.29
+    }
+  ]
+}
