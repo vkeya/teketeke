@@ -1,0 +1,45 @@
+{
+  "summary": {
+    "total_insights": 5,
+    "high_priority": 4,
+    "risks": 3,
+    "opportunities": 2
+  },
+  "insights": [
+    {
+      "type": "risk",
+      "priority": "high",
+      "title": "Customer concentration risk",
+      "finding": "Customer 001 contributes 22.2% of total revenue.",
+      "recommendation": "Protect the account while increasing revenue from secondary customers."
+    },
+    {
+      "type": "opportunity",
+      "priority": "high",
+      "title": "High-growth market: Rwanda",
+      "finding": "Rwanda revenue increased by 43.4% between the first and last six months.",
+      "recommendation": "Evaluate additional sales capacity, inventory and customer acquisition investment in Rwanda."
+    },
+    {
+      "type": "risk",
+      "priority": "high",
+      "title": "Revenue decline in Uganda",
+      "finding": "Uganda revenue changed by -18.7% between the first and last six months.",
+      "recommendation": "Investigate customer losses, product mix and sales activity in Uganda."
+    },
+    {
+      "type": "risk",
+      "priority": "high",
+      "title": "Elevated overdue revenue",
+      "finding": "$10,035,111 (8.9% of revenue) is marked overdue.",
+      "recommendation": "Prioritize collections, review customer credit exposure and monitor overdue balances."
+    },
+    {
+      "type": "opportunity",
+      "priority": "medium",
+      "title": "Product concentration: Carrier Router",
+      "finding": "Carrier Router generates 26.8% of total revenue.",
+      "recommendation": "Protect availability and margins while developing adjacent revenue streams."
+    }
+  ]
+}
