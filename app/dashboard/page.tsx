@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import ExecutiveDecisionPanelContainer from "../../components/dashboard/ExecutiveDecisionPanelContainer";
+
 import { dashboardData } from "../../data/teketeke_dashboard_data";
 import businessInsights from "../../data/business_insights.json";
 import AskTeketeke from "../../components/AskTeketeke";
@@ -27,6 +27,24 @@ const formatCompactCurrency = (value: number) => {
   }
 
   return formatCurrency(value);
+};
+
+type DashboardAnalysis = UploadedAnalysis & {
+  monthlyPerformance?: Array<{
+    month: string;
+    revenue: number;
+    grossProfit?: number;
+  }>;
+  countries?: Array<{
+    name: string;
+    revenue: number;
+    sharePct: number;
+  }>;
+  paymentStatus?: Array<{
+    status: string;
+    revenue: number;
+    sharePct: number;
+  }>;
 };
 
 function MetricCard({
@@ -77,19 +95,39 @@ export default function DashboardPage() {
     );
   }
 
-  const executive =
-    uploadedAnalysis?.metrics ?? dashboardData.executive;
+  const dashboardAnalysis =
+    uploadedAnalysis as DashboardAnalysis | null;
 
-  const insights =
-    uploadedAnalysis?.insights ?? businessInsights.insights;
+  const executive =
+    dashboardAnalysis?.metrics ?? dashboardData.executive;
+
+  const monthlyPerformance =
+    dashboardAnalysis?.monthlyPerformance?.length
+      ? dashboardAnalysis.monthlyPerformance
+      : dashboardData.monthlyPerformance;
+
+  const countries =
+    dashboardAnalysis?.countries?.length
+      ? dashboardAnalysis.countries
+      : dashboardData.countries;
+
+  const uploadedOverdueRevenue =
+    dashboardAnalysis?.paymentStatus
+      ?.filter(
+        (item) => item.status.toLowerCase() === "overdue"
+      )
+      .reduce(
+        (sum, item) => sum + item.revenue,
+        0
+      ) ?? 0;
 
   const overdueRevenue =
     dashboardData.payments.find(
       (payment) => payment.status === "Overdue"
     )?.revenue ?? 0;
 
-  const effectiveOverdueRevenue = uploadedAnalysis
-    ? 0
+  const effectiveOverdueRevenue = dashboardAnalysis
+    ? uploadedOverdueRevenue
     : overdueRevenue;
 
   const topCustomer = uploadedAnalysis?.topCustomer ?? null;
@@ -211,13 +249,15 @@ export default function DashboardPage() {
 
           <MetricCard
             label="Overdue"
-            value={uploadedAnalysis ? "—" : formatCompactCurrency(effectiveOverdueRevenue)}
-            description={uploadedAnalysis ? "Not calculated yet" : "Requires attention"}
-            negative={!uploadedAnalysis}
+            value={formatCompactCurrency(effectiveOverdueRevenue)}
+            description={
+              effectiveOverdueRevenue > 0
+                ? "Requires attention"
+                : "No overdue revenue detected"
+            }
+            negative={effectiveOverdueRevenue > 0}
           />
         </section>
-		
-		<ExecutiveDecisionPanelContainer />
 
         {/* PERFORMANCE */}
 
@@ -232,9 +272,9 @@ export default function DashboardPage() {
             </div>
 
             <div className="flex h-64 items-end gap-1 rounded-xl bg-[#07111F] px-4 pb-6 pt-5">
-              {dashboardData.monthlyPerformance.map((month) => {
+              {monthlyPerformance.map((month) => {
                 const maxRevenue = Math.max(
-                  ...dashboardData.monthlyPerformance.map(
+                  ...monthlyPerformance.map(
                     (item) => item.revenue
                   )
                 );
@@ -260,20 +300,23 @@ export default function DashboardPage() {
             </div>
 
             <div className="mt-3 flex justify-between text-[11px] text-slate-500">
-              <span>{dashboardData.monthlyPerformance[0]?.month}</span>
+              <span>{monthlyPerformance[0]?.month}</span>
               <span>
                 {
-                  dashboardData.monthlyPerformance[
-                    dashboardData.monthlyPerformance.length - 1
+                  monthlyPerformance[
+                    monthlyPerformance.length - 1
                   ]?.month
                 }
               </span>
             </div>
 
-            {uploadedAnalysis && (
-              <p className="mt-4 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
-                This chart is currently showing the demo time-series dataset.
-                Uploaded-data KPIs and insights are active above.
+            {dashboardAnalysis ? (
+              <p className="mt-4 rounded-lg bg-[#19D3C5]/10 px-3 py-2 text-xs text-[#6DE7DC]">
+                Showing the monthly revenue trend from the uploaded dataset.
+              </p>
+            ) : (
+              <p className="mt-4 rounded-lg bg-white/[0.03] px-3 py-2 text-xs text-slate-500">
+                Showing the Teketeke demo dataset.
               </p>
             )}
           </div>
@@ -286,21 +329,9 @@ export default function DashboardPage() {
               </p>
             </div>
 
-            {uploadedAnalysis && topCountry ? (
-              <div className="rounded-xl bg-[#07111F] p-5">
-                <p className="text-xs uppercase tracking-wide text-slate-500">
-                  Leading market
-                </p>
-                <p className="mt-2 text-2xl font-bold">
-                  {topCountry.name}
-                </p>
-                <p className="mt-2 text-sm text-slate-500">
-                  {formatCompactCurrency(topCountry.revenue)} in revenue.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-5">
-                {dashboardData.countries.map((country) => (
+            <div className="space-y-5">
+              {countries.length > 0 ? (
+                countries.slice(0, 5).map((country) => (
                   <div key={country.name}>
                     <div className="mb-2 flex justify-between text-sm">
                       <span className="font-medium">{country.name}</span>
@@ -320,72 +351,89 @@ export default function DashboardPage() {
                       {country.sharePct.toFixed(1)}% of revenue
                     </p>
                   </div>
-                ))}
-              </div>
-            )}
+                ))
+              ) : topCountry ? (
+                <div className="rounded-xl bg-[#07111F] p-5">
+                  <p className="text-xs uppercase tracking-wide text-slate-500">
+                    Leading market
+                  </p>
+                  <p className="mt-2 text-2xl font-bold">
+                    {topCountry.name}
+                  </p>
+                  <p className="mt-2 text-sm text-slate-500">
+                    {formatCompactCurrency(topCountry.revenue)} in revenue.
+                  </p>
+                </div>
+              ) : (
+                <p className="text-sm text-slate-500">
+                  No market data available.
+                </p>
+              )}
+            </div>
           </div>
         </section>
 
         {/* BUSINESS INTELLIGENCE */}
 
-        <section className="mb-8 rounded-2xl border border-white/10 bg-gradient-to-br from-[#0F2032] to-[#0B1828] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.22)]">
+        <section className="mb-8 rounded-2xl border border-white/10 bg-[#0D1B2A] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.18)]">
           <div className="mb-6">
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
               Intelligence
             </p>
-
             <h2 className="mt-2 text-xl font-semibold">
-              What deserves your attention?
+              What the data is telling you
             </h2>
-
             <p className="mt-1 text-sm text-slate-500">
-              {uploadedAnalysis
-                ? "Automatically detected from your uploaded business data."
-                : "Automatically detected from the Teketeke demo dataset."}
+              Risks and opportunities identified from the current dataset.
             </p>
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
-            {insights.map((insight) => {
-              const isRisk = insight.type === "risk";
-
-              return (
-                <article
-                  key={insight.title}
-                  className={`rounded-xl border p-5 ${
-                    isRisk
-                      ? "border-[#FF6B6B]/25 bg-[#FF6B6B]/[0.08]"
-                      : "border-[#19D3C5]/25 bg-[#19D3C5]/[0.08]"
-                  }`}
-                >
-                  <p
-                    className={`text-xs font-bold uppercase tracking-wide ${
-                      isRisk ? "text-[#FF8A8A]" : "text-[#19D3C5]"
-                    }`}
+            {(dashboardAnalysis?.insights ?? businessInsights.insights).length > 0 ? (
+              (dashboardAnalysis?.insights ?? businessInsights.insights).map(
+                (item, index) => (
+                  <div
+                    key={`${item.title}-${index}`}
+                    className="rounded-xl border border-white/10 bg-[#07111F] p-5"
                   >
-                    {isRisk ? "Risk" : "Opportunity"}
-                  </p>
+                    <div className="flex items-center justify-between gap-3">
+                      <span
+                        className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${
+                          item.type === "risk"
+                            ? "bg-[#FF8A8A]/10 text-[#FF8A8A]"
+                            : "bg-[#19D3C5]/10 text-[#6DE7DC]"
+                        }`}
+                      >
+                        {item.type}
+                      </span>
 
-                  <h3 className="mt-2 font-semibold text-white">
-                    {insight.title}
-                  </h3>
+                      <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                        {item.priority} priority
+                      </span>
+                    </div>
 
-                  <p className="mt-2 text-sm leading-6 text-slate-400">
-                    {insight.finding}
-                  </p>
+                    <h3 className="mt-4 font-semibold text-white">
+                      {item.title}
+                    </h3>
 
-                  <div className="mt-4 rounded-lg bg-[#0D1B2A]/70 p-3">
-                    <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
-                      Recommended action
+                    <p className="mt-2 text-sm leading-6 text-slate-400">
+                      {item.finding}
                     </p>
 
-                    <p className="mt-1 text-sm font-medium leading-6 text-slate-200">
-                      {insight.recommendation}
+                    <p className="mt-4 border-t border-white/10 pt-4 text-sm leading-6 text-slate-300">
+                      <span className="font-semibold text-white">
+                        Recommended action:
+                      </span>{" "}
+                      {item.recommendation}
                     </p>
                   </div>
-                </article>
-              );
-            })}
+                )
+              )
+            ) : (
+              <div className="rounded-xl border border-white/10 bg-[#07111F] p-5 text-sm text-slate-500 md:col-span-2">
+                No material risks or opportunities were detected in the current dataset.
+              </div>
+            )}
           </div>
         </section>
 

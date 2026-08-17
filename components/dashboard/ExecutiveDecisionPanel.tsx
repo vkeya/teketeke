@@ -39,6 +39,21 @@ export default function ExecutiveDecisionPanel({
     )
     .slice(0, 3);
 
+  /*
+   * Keep executive decision labels semantically truthful.
+   * Concentration signals are not automatically growth opportunities.
+   * Prefer genuine growth/expansion signals for "Accelerate".
+   */
+  const growthOpportunities = opportunities.filter(
+    (item) =>
+      /growth|expansion|market|acquisition|sales|capacity|investment/i.test(
+        `${item.title} ${item.finding} ${item.recommendation}`
+      )
+  );
+
+  const primaryOpportunity =
+    growthOpportunities[0] ?? opportunities[0];
+
   const decisions = [
     risks[0]
       ? {
@@ -50,12 +65,12 @@ export default function ExecutiveDecisionPanel({
         }
       : null,
 
-    opportunities[0]
+    primaryOpportunity
       ? {
           label: "Accelerate",
-          title: opportunities[0].title,
-          description: opportunities[0].finding,
-          action: opportunities[0].recommendation,
+          title: primaryOpportunity.title,
+          description: primaryOpportunity.finding,
+          action: primaryOpportunity.recommendation,
           tone: "opportunity" as const,
         }
       : null,
@@ -172,10 +187,10 @@ export default function ExecutiveDecisionPanel({
               />
             )}
 
-            {opportunities.length > 1 && (
+            {growthOpportunities.length > 1 && (
               <SignalList
                 title="Other opportunities"
-                items={opportunities.slice(1)}
+                items={growthOpportunities.slice(1)}
               />
             )}
 
