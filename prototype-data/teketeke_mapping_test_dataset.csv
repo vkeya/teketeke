@@ -1,0 +1,37 @@
+Transaction Ref,Order Date,Sales Amount,COGS,Client Name,Market,Item,Payment State
+TX-10001,2025-01-15,98178.93,58557.89,Apex Telecom,Kenya,Carrier Router,Paid
+TX-10002,2025-01-25,68112.51,37964.44,Nile Networks,Uganda,Enterprise Firewall,Paid
+TX-10003,2025-02-04,61291.68,29835.89,Savanna Mobile,Tanzania,IP Backbone License,Paid
+TX-10004,2025-02-14,48693.95,24484.13,Juba Enterprise,South Sudan,SD-WAN Gateway,Paid
+TX-10005,2025-02-24,69061.17,39878.01,Great Lakes ISP,Rwanda,Fiber Access Platform,Paid
+TX-10006,2025-03-06,27023.07,9462.13,Copperbelt Telco,Zambia,Network Support,Paid
+TX-10007,2025-03-16,90099.37,54515.74,Apex Telecom,Kenya,Carrier Router,Paid
+TX-10008,2025-03-26,79811.3,45656.0,Nile Networks,Uganda,Enterprise Firewall,Overdue
+TX-10009,2025-04-05,57896.13,27988.6,Savanna Mobile,Tanzania,IP Backbone License,Paid
+TX-10010,2025-04-15,51043.62,25494.77,Juba Enterprise,South Sudan,SD-WAN Gateway,Paid
+TX-10011,2025-04-25,80655.02,49160.1,Great Lakes ISP,Rwanda,Fiber Access Platform,Pending
+TX-10012,2025-05-05,29753.76,10126.79,Copperbelt Telco,Zambia,Network Support,Paid
+TX-10013,2025-05-15,120183.88,73539.93,Apex Telecom,Kenya,Carrier Router,Paid
+TX-10014,2025-05-25,74057.42,40850.83,Nile Networks,Uganda,Enterprise Firewall,Paid
+TX-10015,2025-06-04,71634.32,34669.8,Savanna Mobile,Tanzania,IP Backbone License,Paid
+TX-10016,2025-06-14,54249.24,28728.06,Juba Enterprise,South Sudan,SD-WAN Gateway,Paid
+TX-10017,2025-06-24,80594.71,50187.1,Great Lakes ISP,Rwanda,Fiber Access Platform,Overdue
+TX-10018,2025-07-04,31940.91,11225.86,Copperbelt Telco,Zambia,Network Support,Paid
+TX-10019,2025-07-14,124037.62,77632.49,Apex Telecom,Kenya,Carrier Router,Paid
+TX-10020,2025-07-24,94682.86,54303.2,Nile Networks,Uganda,Enterprise Firewall,Paid
+TX-10021,2025-08-03,73625.64,34056.25,Savanna Mobile,Tanzania,IP Backbone License,Paid
+TX-10022,2025-08-13,50038.93,25581.83,Juba Enterprise,South Sudan,SD-WAN Gateway,Pending
+TX-10023,2025-08-23,76122.05,44696.89,Great Lakes ISP,Rwanda,Fiber Access Platform,Paid
+TX-10024,2025-09-02,31521.82,10836.67,Copperbelt Telco,Zambia,Network Support,Paid
+TX-10025,2025-09-12,125559.81,77005.29,Apex Telecom,Kenya,Carrier Router,Paid
+TX-10026,2025-09-22,89288.61,49711.75,Nile Networks,Uganda,Enterprise Firewall,Overdue
+TX-10027,2025-10-02,70088.1,34817.49,Savanna Mobile,Tanzania,IP Backbone License,Paid
+TX-10028,2025-10-12,58553.96,30713.89,Juba Enterprise,South Sudan,SD-WAN Gateway,Paid
+TX-10029,2025-10-22,82362.37,50323.25,Great Lakes ISP,Rwanda,Fiber Access Platform,Paid
+TX-10030,2025-11-01,33845.56,11731.71,Copperbelt Telco,Zambia,Network Support,Paid
+TX-10031,2025-11-11,143317.53,89852.06,Apex Telecom,Kenya,Carrier Router,Paid
+TX-10032,2025-11-21,98528.52,56990.71,Nile Networks,Uganda,Enterprise Firewall,Overdue
+TX-10033,2025-12-01,84742.87,41574.72,Savanna Mobile,Tanzania,IP Backbone License,Paid
+TX-10034,2025-12-11,55682.23,27870.93,Juba Enterprise,South Sudan,SD-WAN Gateway,Paid
+TX-10035,2025-12-21,90008.65,53001.73,Great Lakes ISP,Rwanda,Fiber Access Platform,Pending
+TX-10036,2025-12-31,36090.06,13079.09,Copperbelt Telco,Zambia,Network Support,Paid

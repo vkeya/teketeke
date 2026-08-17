@@ -6,6 +6,12 @@ export type UploadedInsight = {
   recommendation: string;
 };
 
+export type UploadedProduct = {
+  name: string;
+  revenue: number;
+  sharePct: number;
+};
+
 export type UploadedAnalysis = {
   success: boolean;
   fileName: string;
@@ -36,6 +42,14 @@ export type UploadedAnalysis = {
     name: string;
     revenue: number;
   } | null;
+
+  /**
+   * Full product-level analysis from the uploaded dataset.
+   *
+   * Optional for backward compatibility with analyses already stored
+   * in localStorage before Product Explorer was introduced.
+   */
+  products?: UploadedProduct[];
 
   insights: UploadedInsight[];
 

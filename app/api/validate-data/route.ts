@@ -20,6 +20,45 @@ const REQUIRED_COLUMNS = [
   "sales_channel",
 ];
 
+type MappingField =
+  | "date"
+  | "revenue"
+  | "cost"
+  | "gross_profit"
+  | "customer_name"
+  | "country"
+  | "product"
+  | "payment_status";
+
+const MAPPING_ALIASES: Record<MappingField, string[]> = {
+  date: ["date", "orderdate", "transactiondate", "salesdate"],
+  revenue: [
+    "revenue",
+    "sales",
+    "salesamount",
+    "amount",
+    "total",
+    "totalamount",
+  ],
+  cost: ["cost", "cogs", "costofgoods", "totalcost"],
+  gross_profit: ["grossprofit", "profit", "grossmarginvalue"],
+  customer_name: [
+    "customer",
+    "customername",
+    "client",
+    "clientname",
+    "account",
+  ],
+  country: ["country", "market", "nation", "countryname"],
+  product: ["product", "productname", "item", "itemname", "service"],
+  payment_status: [
+    "paymentstatus",
+    "status",
+    "payment",
+    "paymentstate",
+  ],
+};
+
 function parseCsvLine(line: string) {
   const values: string[] = [];
   let current = "";
@@ -46,6 +85,35 @@ function parseCsvLine(line: string) {
   values.push(current.trim());
 
   return values;
+}
+
+function normalizeColumnName(column: string) {
+  return column
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+}
+
+function inferColumnMapping(columns: string[]) {
+  const normalized = columns.map((column) => ({
+    original: column,
+    normalized: normalizeColumnName(column),
+  }));
+
+  const mapping: Partial<Record<MappingField, string>> = {};
+
+  (Object.keys(MAPPING_ALIASES) as MappingField[]).forEach((field) => {
+    const match = normalized.find(({ normalized: value }) =>
+      MAPPING_ALIASES[field].some(
+        (alias) => value === alias || value.includes(alias)
+      )
+    );
+
+    if (match) {
+      mapping[field] = match.original;
+    }
+  });
+
+  return mapping;
 }
 
 export async function POST(request: Request) {
@@ -98,7 +166,9 @@ export async function POST(request: Request) {
     if (lines.length < 2) {
       return NextResponse.json({
         valid: false,
-        errors: ["The CSV must contain a header row and at least one data row."],
+        errors: [
+          "The CSV must contain a header row and at least one data row.",
+        ],
         warnings: [],
         rowCount: 0,
       });
@@ -108,6 +178,12 @@ export async function POST(request: Request) {
       header.replace(/^\uFEFF/, "").trim()
     );
 
+    const hasCanonicalSchema = REQUIRED_COLUMNS.every((column) =>
+      headers.includes(column)
+    );
+
+    const suggestedMapping = inferColumnMapping(headers);
+
     const missingColumns = REQUIRED_COLUMNS.filter(
       (column) => !headers.includes(column)
     );
@@ -115,10 +191,29 @@ export async function POST(request: Request) {
     const errors: string[] = [];
     const warnings: string[] = [];
 
-    if (missingColumns.length > 0) {
-      errors.push(
-        `Missing required columns: ${missingColumns.join(", ")}`
-      );
+    /*
+     * Canonical files retain the existing strict validation behaviour.
+     * Non-canonical files are allowed through so the mapping layer can
+     * translate their columns into Teketeke's internal schema.
+     */
+    if (hasCanonicalSchema) {
+      // No schema error. Continue with the existing data-quality checks.
+    } else {
+      const mappedCoreFields = Object.keys(suggestedMapping).length;
+
+      if (mappedCoreFields === 0) {
+        errors.push(
+          "Teketeke could not identify any supported business columns. Please upload a compatible transaction dataset."
+        );
+      } else {
+        warnings.push(
+          `${missingColumns.length} canonical column(s) are not present. Column mapping is required before analysis.`
+        );
+
+        warnings.push(
+          `Teketeke detected ${mappedCoreFields} supported business field(s) from your column names.`
+        );
+      }
     }
 
     const rows = lines.slice(1).map((line) => {
@@ -132,106 +227,109 @@ export async function POST(request: Request) {
       );
     });
 
-    const transactionIds = new Set<string>();
-    let duplicateTransactions = 0;
-
-    for (const row of rows) {
-      const transactionId = row.transaction_id;
-
-      if (!transactionId) {
-        continue;
-      }
-
-      if (transactionIds.has(transactionId)) {
-        duplicateTransactions++;
-      }
-
-      transactionIds.add(transactionId);
-    }
-
-    if (duplicateTransactions > 0) {
-      errors.push(
-        `Found ${duplicateTransactions} duplicate transaction ID(s).`
-      );
-    }
-
-    const numericColumns = [
-      "quantity",
-      "unit_price",
-      "unit_cost",
-      "revenue",
-      "cost",
-      "gross_profit",
-    ];
-
-    for (const column of numericColumns) {
-      let invalidValues = 0;
+    /*
+     * Only run the legacy row-level checks when the source already uses
+     * Teketeke's canonical schema. Renamed columns will be validated after
+     * mapping is applied by the analysis pipeline.
+     */
+    if (hasCanonicalSchema) {
+      const transactionIds = new Set<string>();
+      let duplicateTransactions = 0;
 
       for (const row of rows) {
-        const value = row[column];
+        const transactionId = row.transaction_id;
 
-        if (value === undefined || value === "") {
+        if (!transactionId) {
           continue;
         }
 
-        if (!Number.isFinite(Number(value))) {
-          invalidValues++;
+        if (transactionIds.has(transactionId)) {
+          duplicateTransactions++;
         }
+
+        transactionIds.add(transactionId);
       }
 
-      if (invalidValues > 0) {
+      if (duplicateTransactions > 0) {
         errors.push(
-          `${column} contains ${invalidValues} non-numeric value(s).`
+          `Found ${duplicateTransactions} duplicate transaction ID(s).`
         );
       }
-    }
 
-    let revenueMismatch = 0;
-    let profitMismatch = 0;
+      const numericColumns = [
+        "quantity",
+        "unit_price",
+        "unit_cost",
+        "revenue",
+        "cost",
+        "gross_profit",
+      ];
 
-    for (const row of rows) {
-      const quantity = Number(row.quantity);
-      const unitPrice = Number(row.unit_price);
-      const revenue = Number(row.revenue);
+      for (const column of numericColumns) {
+        let invalidValues = 0;
 
-      const cost = Number(row.cost);
-      const grossProfit = Number(row.gross_profit);
+        for (const row of rows) {
+          const value = row[column];
 
-      if (
-        Number.isFinite(quantity) &&
-        Number.isFinite(unitPrice) &&
-        Number.isFinite(revenue)
-      ) {
-        if (
-          Math.abs(quantity * unitPrice - revenue) > 0.01
-        ) {
-          revenueMismatch++;
+          if (value === undefined || value === "") {
+            continue;
+          }
+
+          if (!Number.isFinite(Number(value))) {
+            invalidValues++;
+          }
+        }
+
+        if (invalidValues > 0) {
+          errors.push(
+            `${column} contains ${invalidValues} non-numeric value(s).`
+          );
         }
       }
 
-      if (
-        Number.isFinite(revenue) &&
-        Number.isFinite(cost) &&
-        Number.isFinite(grossProfit)
-      ) {
+      let revenueMismatch = 0;
+      let profitMismatch = 0;
+
+      for (const row of rows) {
+        const quantity = Number(row.quantity);
+        const unitPrice = Number(row.unit_price);
+        const revenue = Number(row.revenue);
+
+        const cost = Number(row.cost);
+        const grossProfit = Number(row.gross_profit);
+
         if (
-          Math.abs(revenue - cost - grossProfit) > 0.01
+          Number.isFinite(quantity) &&
+          Number.isFinite(unitPrice) &&
+          Number.isFinite(revenue)
         ) {
-          profitMismatch++;
+          if (Math.abs(quantity * unitPrice - revenue) > 0.01) {
+            revenueMismatch++;
+          }
+        }
+
+        if (
+          Number.isFinite(revenue) &&
+          Number.isFinite(cost) &&
+          Number.isFinite(grossProfit)
+        ) {
+          if (Math.abs(revenue - cost - grossProfit) > 0.01) {
+            profitMismatch++;
+          }
         }
       }
-    }
 
-    if (revenueMismatch > 0) {
-      errors.push(
-        `Revenue calculation mismatch in ${revenueMismatch} row(s).`
-      );
-    }
+      if (revenueMismatch > 0) {
+        errors.push(
+          `Revenue calculation mismatch in ${revenueMismatch} row(s).`
+        );
+      }
 
-    if (profitMismatch > 0) {
-      errors.push(
-        `Gross profit calculation mismatch in ${profitMismatch} row(s).`
-      );
+      if (profitMismatch > 0) {
+        errors.push(
+          `Gross profit calculation mismatch in ${profitMismatch} row(s).`
+        );
+      }
     }
 
     let missingCells = 0;
@@ -257,6 +355,8 @@ export async function POST(request: Request) {
       rowCount: rows.length,
       columns: headers,
       fileName: file.name,
+      hasCanonicalSchema,
+      suggestedMapping,
     });
   } catch (error) {
     console.error("Data validation error:", error);
