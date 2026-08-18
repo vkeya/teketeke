@@ -129,6 +129,13 @@ export type AutomationBusinessCase = {
   assumptions: string[];
 };
 
+export type AutomationBusinessCaseInputs = {
+  hourlyValue?: number;
+  implementationCost?: number;
+  implementationDays?: number;
+  implementationRatePerDay?: number;
+};
+
 export type ImplementationTask = {
   id: string;
   title: string;
@@ -170,7 +177,6 @@ export type AutomationMeasurement = {
   measuredAt?: string;
   notes?: string[];
 };
-
 
 export type DiscoveryActivityDetail = {
   activityId: string;
@@ -229,6 +235,8 @@ export type AutomationAssessment = {
     roadmap: RoadmapPhase[];
     businessCase?: AutomationBusinessCase;
   };
+
+  businessCaseInputs?: AutomationBusinessCaseInputs;
 
   decision?: {
     outcome: "pending" | "approved" | "declined" | "needs_revision";
