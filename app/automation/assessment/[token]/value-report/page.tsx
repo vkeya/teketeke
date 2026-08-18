@@ -12,6 +12,14 @@ type ValueReport = {
   currentWeeklyHours: number;
   measuredAt?: string;
   nextSteps: string[];
+  forecastAnnualHoursSaved?: number;
+  annualizedActualHoursRecovered: number;
+  hoursRealizationPct?: number;
+  realizationStatus:
+    | "exceeded"
+    | "met"
+    | "below"
+    | "not_comparable";
 };
 
 type ResponseData = {
@@ -30,6 +38,36 @@ function formatNumber(value: number | undefined): string {
   return value.toLocaleString(undefined, {
     maximumFractionDigits: 1,
   });
+}
+
+function realizationLabel(
+  status: ValueReport["realizationStatus"]
+): string {
+  switch (status) {
+    case "exceeded":
+      return "Exceeded original forecast";
+    case "met":
+      return "Met original forecast";
+    case "below":
+      return "Below original forecast";
+    default:
+      return "Forecast comparison unavailable";
+  }
+}
+
+function realizationDescription(
+  status: ValueReport["realizationStatus"]
+): string {
+  switch (status) {
+    case "exceeded":
+      return "Measured results are ahead of the original hours-saving forecast.";
+    case "met":
+      return "Measured results are broadly in line with the original hours-saving forecast.";
+    case "below":
+      return "Measured results are currently below the original hours-saving forecast and should be reviewed with the process owner.";
+    default:
+      return "An original annual-hours forecast is required before Teketeke can compare forecasted and measured value.";
+  }
 }
 
 export default function AutomationValueReportPage({
@@ -117,8 +155,9 @@ export default function AutomationValueReportPage({
           </h1>
 
           <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-400">
-            Measured operational impact after implementation, based on
-            the recorded baseline and current-state results.
+            Measured operational impact after implementation, compared
+            with the original automation forecast where a valid baseline
+            exists.
           </p>
         </header>
 
@@ -134,6 +173,72 @@ export default function AutomationValueReportPage({
           <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-300">
             {report.summary}
           </p>
+        </section>
+
+        <section className="mt-6 rounded-2xl border border-[#19D3C5]/20 bg-[#0A1422] p-7">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#6DE7DC]">
+                Value realization
+              </p>
+
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight">
+                Forecast vs actual
+              </h2>
+
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
+                Teketeke compares the original annual hours-saving
+                forecast with the annualized result from the measured
+                weekly hours recovered.
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-[#19D3C5]/20 bg-[#19D3C5]/[0.04] px-5 py-4">
+              <p className="text-[9px] font-bold uppercase tracking-[0.1em] text-[#6DE7DC]">
+                Realization
+              </p>
+
+              <p className="mt-1 text-2xl font-semibold">
+                {report.hoursRealizationPct !== undefined
+                  ? `${formatNumber(report.hoursRealizationPct)}%`
+                  : "—"}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-3 sm:grid-cols-2">
+            <ValueComparison
+              label="Original annual forecast"
+              value={formatNumber(
+                report.forecastAnnualHoursSaved
+              )}
+              suffix="hours / year"
+            />
+
+            <ValueComparison
+              label="Annualized measured outcome"
+              value={formatNumber(
+                report.annualizedActualHoursRecovered
+              )}
+              suffix="hours / year"
+            />
+          </div>
+
+          <div className="mt-4 rounded-xl border border-white/8 bg-[#050B14] p-5">
+            <p className="text-[9px] font-bold uppercase tracking-[0.1em] text-slate-600">
+              Teketeke assessment
+            </p>
+
+            <p className="mt-2 text-lg font-semibold">
+              {realizationLabel(report.realizationStatus)}
+            </p>
+
+            <p className="mt-2 text-sm leading-6 text-slate-400">
+              {realizationDescription(
+                report.realizationStatus
+              )}
+            </p>
+          </div>
         </section>
 
         <section className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -213,6 +318,29 @@ function Metric({
         {label}
       </p>
       <p className="mt-3 text-2xl font-semibold">{value}</p>
+    </div>
+  );
+}
+
+function ValueComparison({
+  label,
+  value,
+  suffix,
+}: {
+  label: string;
+  value: string;
+  suffix: string;
+}) {
+  return (
+    <div className="rounded-xl border border-white/8 bg-[#050B14] p-5">
+      <p className="text-[9px] font-bold uppercase tracking-[0.1em] text-slate-600">
+        {label}
+      </p>
+
+      <div className="mt-2 flex items-baseline gap-2">
+        <p className="text-2xl font-semibold">{value}</p>
+        <span className="text-xs text-slate-500">{suffix}</span>
+      </div>
     </div>
   );
 }
