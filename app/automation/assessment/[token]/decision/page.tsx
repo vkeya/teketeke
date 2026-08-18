@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { recommendAutomationDecision } from "@/lib/automation/AutomationDecisionEngine";
+import type { AutomationOpportunity } from "@/lib/automation/AutomationAssessment";
 
 type Opportunity = {
   id: string;
@@ -104,6 +106,12 @@ export default function AutomationDecisionPage({
         }
 
         setData(result);
+
+        const recommended = recommendAutomationDecision(
+          (result.report.opportunities ?? []) as unknown as AutomationOpportunity[]
+        );
+
+        setSelected(recommended.opportunityIds);
       } catch (err) {
         setError(
           err instanceof Error
@@ -253,6 +261,12 @@ export default function AutomationDecisionPage({
 
   const businessCase = data.report.businessCase;
 
+  const recommendation = recommendAutomationDecision(
+    opportunities as unknown as AutomationOpportunity[]
+  );
+
+  const recommendedOpportunityIds = recommendation.opportunityIds;
+
   return (
     <main className="min-h-screen bg-[#050B14] px-5 py-10 text-white">
       <div className="mx-auto max-w-5xl">
@@ -263,10 +277,90 @@ export default function AutomationDecisionPage({
           <h1 className="mt-3 text-3xl font-semibold">
             {data.assessment.organization.name}
           </h1>
-          <p className="mt-2 text-sm text-slate-400">
-            Select the opportunities worth pursuing.
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
+            Teketeke has evaluated the opportunities and prepared a
+            recommended first implementation decision.
           </p>
         </header>
+
+        <section className="mt-6 rounded-2xl border border-[#19D3C5]/20 bg-[#0A1422] p-6">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+            <div className="max-w-3xl">
+              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#6DE7DC]">
+                Teketeke recommendation
+              </p>
+
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight">
+                {recommendation.recommendation === "approve"
+                  ? "Approve the first implementation phase"
+                  : recommendation.recommendation === "defer"
+                    ? "Defer implementation for now"
+                    : "Review the opportunities before approving"}
+              </h2>
+
+              <p className="mt-3 text-sm leading-7 text-slate-300">
+                {recommendation.rationale}
+              </p>
+            </div>
+
+            <div className="shrink-0 rounded-xl border border-[#19D3C5]/20 bg-[#19D3C5]/[0.04] px-5 py-4">
+              <p className="text-[9px] font-bold uppercase tracking-[0.1em] text-[#6DE7DC]">
+                Recommended
+              </p>
+
+              <p className="mt-1 text-lg font-semibold text-white">
+                {recommendedOpportunityIds.length > 0
+                  ? `${recommendedOpportunityIds.length} ${
+                      recommendedOpportunityIds.length === 1
+                        ? "opportunity"
+                        : "opportunities"
+                    }`
+                  : "Review"}
+              </p>
+            </div>
+          </div>
+
+          {recommendedOpportunityIds.length > 0 && (
+            <div className="mt-5 border-t border-white/8 pt-5">
+              <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-slate-600">
+                Why these are recommended
+              </p>
+
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                {opportunities
+                  .filter((opportunity) =>
+                    recommendedOpportunityIds.includes(opportunity.id)
+                  )
+                  .map((opportunity) => (
+                    <div
+                      key={opportunity.id}
+                      className="rounded-xl border border-white/8 bg-[#050B14] p-4"
+                    >
+                      <p className="text-sm font-semibold text-white">
+                        {opportunity.title ??
+                          opportunity.name ??
+                          "Automation opportunity"}
+                      </p>
+
+                      <div className="mt-3 flex flex-wrap gap-2 text-[9px] font-bold uppercase tracking-[0.08em]">
+                        <span className="rounded-full border border-[#19D3C5]/20 bg-[#19D3C5]/5 px-2.5 py-1 text-[#6DE7DC]">
+                          Automation {number(opportunity.automationScore)}
+                        </span>
+
+                        <span className="rounded-full border border-white/10 px-2.5 py-1 text-slate-500">
+                          Priority {opportunity.priority ?? "review"}
+                        </span>
+
+                        <span className="rounded-full border border-white/10 px-2.5 py-1 text-slate-500">
+                          Risk {number(opportunity.riskScore)}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
+        </section>
 
         <section className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-4">
           <div className="rounded-xl border border-white/10 bg-[#0A1422] p-4">
@@ -375,6 +469,14 @@ export default function AutomationDecisionPage({
                             {opportunity.priority ??
                               "review"}
                           </span>
+
+                          {recommendedOpportunityIds.includes(
+                            opportunity.id
+                          ) && (
+                            <span className="rounded-full border border-[#19D3C5]/20 bg-[#19D3C5]/5 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.08em] text-[#6DE7DC]">
+                              Teketeke recommends
+                            </span>
+                          )}
                         </div>
 
                         <p className="mt-1.5 text-xs text-slate-500">
@@ -437,9 +539,55 @@ export default function AutomationDecisionPage({
         </section>
 
         <section className="mt-8 rounded-2xl border border-white/10 bg-[#0A1422] p-6">
-          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-600">
-            Decision
+          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#6DE7DC]">
+            Decision readiness
           </p>
+
+          <h2 className="mt-2 text-xl font-semibold">
+            Are you ready to move forward?
+          </h2>
+
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+            Review the recommended opportunities, expected value and
+            implementation assumptions before recording the decision.
+          </p>
+
+          <div className="mt-5 grid gap-3 sm:grid-cols-3">
+            <div className="rounded-xl border border-white/8 bg-[#050B14] p-4">
+              <p className="text-[9px] uppercase tracking-[0.1em] text-slate-600">
+                Selected
+              </p>
+              <p className="mt-1 text-sm font-semibold text-white">
+                {selected.length}
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-white/8 bg-[#050B14] p-4">
+              <p className="text-[9px] uppercase tracking-[0.1em] text-slate-600">
+                Annual value
+              </p>
+              <p className="mt-1 text-sm font-semibold text-[#6DE7DC]">
+                {money(businessCase?.estimatedAnnualValue)}
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-white/8 bg-[#050B14] p-4">
+              <p className="text-[9px] uppercase tracking-[0.1em] text-slate-600">
+                Payback
+              </p>
+              <p className="mt-1 text-sm font-semibold text-white">
+                {businessCase?.estimatedPaybackMonths !== undefined
+                  ? `${businessCase.estimatedPaybackMonths.toFixed(1)} mo`
+                  : "—"}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-5 border-t border-white/8 pt-5">
+            <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-600">
+              Decision
+            </p>
+          </div>
 
           <div className="mt-4 grid gap-2 sm:grid-cols-3">
             {(
