@@ -62,7 +62,7 @@ export default function HomePage() {
             </p>
 
             <p className="text-[9px] font-medium uppercase tracking-[0.24em] text-slate-500">
-              Business Intelligence
+              Business + Automation Intelligence
             </p>
           </div>
         </Link>
@@ -83,18 +83,18 @@ export default function HomePage() {
           </a>
 
           <a
+            href="#automation"
+            className="transition hover:text-white"
+          >
+            Automation
+          </a>
+
+          <a
             href="#approach"
             className="transition hover:text-white"
           >
             Approach
           </a>
-
-          <Link
-            href="/automation/assessment/new"
-            className="transition hover:text-white"
-          >
-            Automation
-          </Link>
         </div>
 
         <Link
@@ -117,25 +117,26 @@ export default function HomePage() {
             <span className="h-1.5 w-1.5 rounded-full bg-[#19D3C5] shadow-[0_0_10px_rgba(25,211,197,0.8)]" />
 
             <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8FE8DF]">
-              AI-powered business intelligence
+              Business + automation intelligence
             </span>
 
           </div>
 
           <h1 className="max-w-4xl text-5xl font-semibold leading-[1.04] tracking-[-0.04em] sm:text-6xl lg:text-7xl">
 
-            Turn business data into{" "}
-
+            Understand your business.
+            <br />
             <span className="bg-gradient-to-r from-[#19D3C5] via-[#6DE7DC] to-[#7C5CFC] bg-clip-text text-transparent">
-              decisive action.
+              Improve how it works.
             </span>
 
           </h1>
 
           <p className="mt-8 max-w-2xl text-lg leading-8 text-slate-400 sm:text-xl">
-            Teketeke transforms your business data into clear
-            intelligence — revealing what is happening, why it
-            matters and what you should do next.
+            Teketeke turns business data into decision-ready
+            intelligence and maps how work gets done — revealing
+            what is happening, where time is lost, what can be
+            automated and what to do next.
           </p>
 
           <div className="mt-10 flex flex-col gap-3 sm:flex-row">
@@ -152,10 +153,10 @@ export default function HomePage() {
             </Link>
 
             <Link
-              href="/dashboard"
+              href="/automation/assessment/new"
               className="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] px-6 py-3.5 text-sm font-semibold text-white transition hover:border-white/20 hover:bg-white/[0.07]"
             >
-              View intelligence dashboard
+              Discover automation opportunities
             </Link>
 
           </div>
@@ -470,62 +471,72 @@ export default function HomePage() {
         className="relative z-10 border-y border-white/5 bg-[#07111F]"
       >
         <div className="mx-auto max-w-7xl px-6 py-24 lg:px-8">
-          <div className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#19D3C5]">
+          <div className="max-w-3xl">
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#19D3C5]">
+              One platform. Two intelligence layers.
+            </p>
+
+            <h2 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
+              Understand what is happening.
+              <br />
+              <span className="text-slate-400">
+                Improve how work gets done.
+              </span>
+            </h2>
+
+            <p className="mt-5 max-w-2xl text-base leading-7 text-slate-400">
+              Teketeke helps leadership understand the business from
+              two connected perspectives: the numbers that drive
+              performance and the work that drives operations.
+            </p>
+          </div>
+
+          <div className="mt-12 grid gap-5 lg:grid-cols-2">
+            <div className="rounded-2xl border border-white/7 bg-[#0D1B2A] p-7">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#19D3C5]">
+                Business Intelligence
+              </p>
+
+              <h3 className="mt-4 text-2xl font-semibold">
+                Know what your business is telling you.
+              </h3>
+
+              <p className="mt-3 text-sm leading-6 text-slate-500">
+                Upload your business data and uncover revenue,
+                profitability, customer, product and market signals.
+              </p>
+
+              <Link
+                href="/upload"
+                className="mt-7 inline-flex items-center gap-2 text-sm font-semibold text-[#19D3C5] transition hover:text-[#6DE7DC]"
+              >
+                Analyze your data
+                <span>→</span>
+              </Link>
+            </div>
+
+            <div className="rounded-2xl border border-[#19D3C5]/15 bg-[#0D1B2A] p-7">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#6DE7DC]">
                 Automation Intelligence
               </p>
 
-              <h2 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
-                Find the work your business
-                <br />
-                should stop doing manually.
-              </h2>
+              <h3 className="mt-4 text-2xl font-semibold">
+                Know what work should be automated.
+              </h3>
 
-              <p className="mt-5 max-w-xl text-base leading-7 text-slate-400">
-                Teketeke maps how your teams work, identifies repetitive
-                processes and automation opportunities, and helps you
-                understand the potential time and financial impact before
-                you invest.
+              <p className="mt-3 text-sm leading-6 text-slate-500">
+                Map repetitive work, identify practical automation
+                opportunities and quantify potential time and financial
+                value before you invest.
               </p>
 
               <Link
                 href="/automation/assessment/new"
-                className="mt-8 inline-flex items-center gap-3 rounded-xl bg-[#19D3C5] px-5 py-3.5 text-sm font-bold text-[#07111F] transition hover:bg-[#6DE7DC]"
+                className="mt-7 inline-flex items-center gap-2 text-sm font-semibold text-[#19D3C5] transition hover:text-[#6DE7DC]"
               >
-                Start Automation Assessment
+                Start automation assessment
                 <span>→</span>
               </Link>
-
-              <p className="mt-4 text-xs text-slate-600">
-                No technical knowledge required.
-              </p>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-2">
-              {[
-                ["01", "Discover", "Map the work that consumes time."],
-                ["02", "Identify", "Find practical automation opportunities."],
-                ["03", "Quantify", "Estimate time and financial impact."],
-                ["04", "Prioritize", "Know what to automate first."],
-              ].map(([number, title, description]) => (
-                <div
-                  key={number}
-                  className="rounded-2xl border border-white/7 bg-[#0D1B2A] p-6 transition hover:-translate-y-1 hover:border-[#19D3C5]/20"
-                >
-                  <span className="text-xs font-bold tracking-[0.15em] text-[#19D3C5]">
-                    {number}
-                  </span>
-
-                  <h3 className="mt-8 text-lg font-semibold">
-                    {title}
-                  </h3>
-
-                  <p className="mt-2 text-sm leading-6 text-slate-500">
-                    {description}
-                  </p>
-                </div>
-              ))}
             </div>
           </div>
         </div>
@@ -659,7 +670,7 @@ export default function HomePage() {
           </div>
 
           <p className="text-xs text-slate-600">
-            AI-powered business & automation intelligence.
+            Business + automation intelligence.
           </p>
 
         </div>
