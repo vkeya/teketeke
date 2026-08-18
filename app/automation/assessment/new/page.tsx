@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   countryOptions,
   industryOptions,
@@ -19,7 +20,7 @@ export default function CreateAutomationAssessmentPage() {
   const [decisionMakerEmail, setDecisionMakerEmail] = useState("");
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
-  const [link, setLink] = useState("");
+  const router = useRouter();
 
   const selectedIndustry =
     industry === "other" ? customIndustry.trim() : industry;
@@ -66,7 +67,6 @@ export default function CreateAutomationAssessmentPage() {
 
     setCreating(true);
     setError("");
-    setLink("");
 
     try {
       const response = await fetch("/api/automation/assessment", {
@@ -96,8 +96,8 @@ export default function CreateAutomationAssessmentPage() {
         );
       }
 
-      setLink(
-        `${window.location.origin}/automation/assessment/${encodeURIComponent(
+      router.push(
+        `/automation/assessment/${encodeURIComponent(
           result.publicToken
         )}`
       );
@@ -297,39 +297,11 @@ export default function CreateAutomationAssessmentPage() {
               disabled={creating}
               className="rounded-xl bg-[#19D3C5] px-6 py-3 text-xs font-bold text-[#050B14] disabled:cursor-not-allowed disabled:opacity-40"
             >
-              {creating ? "Creating..." : "Create assessment link"}
+              {creating ? "Starting..." : "Start assessment"}
             </button>
           </div>
         </form>
 
-        {link && (
-          <section className="mt-6 rounded-2xl border border-[#19D3C5]/15 bg-[#0A1422] p-7">
-            <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#6DE7DC]">
-              Assessment link created
-            </p>
-
-            <p className="mt-3 text-sm leading-6 text-slate-400">
-              Share this link with the decision maker. The link opens
-              their workplace discovery assessment.
-            </p>
-
-            <div className="mt-5 break-all rounded-xl border border-white/10 bg-[#050B14] px-4 py-4 text-xs text-slate-300">
-              {link}
-            </div>
-
-            <div className="mt-5 flex justify-end">
-              <button
-                type="button"
-                onClick={() =>
-                  void navigator.clipboard.writeText(link)
-                }
-                className="rounded-xl border border-white/10 px-5 py-3 text-xs font-bold text-slate-300"
-              >
-                Copy link
-              </button>
-            </div>
-          </section>
-        )}
       </div>
     </main>
   );
