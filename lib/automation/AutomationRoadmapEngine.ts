@@ -8,32 +8,95 @@ export type RoadmapPlanningOptions = {
   nearTermMaxDays?: number;
 };
 
+type RoadmapBucket =
+  | "quick_wins"
+  | "near_term"
+  | "medium_term"
+  | "strategic";
+
+const PHASE_IDS: RoadmapBucket[] = [
+  "quick_wins",
+  "near_term",
+  "medium_term",
+  "strategic",
+];
+
+function effectiveDays(
+  opportunity: AutomationOpportunity
+): number {
+  return opportunity.estimatedImplementationDays ?? 10;
+}
+
+function hasMeaningfulRisk(
+  opportunity: AutomationOpportunity
+): boolean {
+  return opportunity.riskScore >= 60 || opportunity.risks.length >= 2;
+}
+
+function hasDependencies(
+  opportunity: AutomationOpportunity
+): boolean {
+  return opportunity.dependencies.length > 0;
+}
+
 function phaseForOpportunity(
   opportunity: AutomationOpportunity,
   options: Required<RoadmapPlanningOptions>
-): string {
-  const days = opportunity.estimatedImplementationDays ?? 10;
+): RoadmapBucket {
+  const days = effectiveDays(opportunity);
+  const score = opportunity.automationScore;
+  const impact = opportunity.impactScore;
+  const feasibility = opportunity.feasibilityScore;
+  const risk = opportunity.riskScore;
 
-  if (
-    opportunity.priority === "critical" ||
-    opportunity.priority === "high" &&
-      days <= options.quickWinMaxDays
-  ) {
+  /*
+   * Quick wins should be genuinely attractive:
+   * high value, feasible, relatively low risk and short to implement.
+   *
+   * Critical opportunities can still require more planning if their
+   * implementation effort or risk is significant.
+   */
+  const qualifiesAsQuickWin =
+    days <= options.quickWinMaxDays &&
+    score >= 70 &&
+    impact >= 60 &&
+    feasibility >= 60 &&
+    risk < 60;
+
+  if (qualifiesAsQuickWin) {
     return "quick_wins";
   }
 
-  if (days <= options.nearTermMaxDays) {
+  /*
+   * Near-term opportunities are strong candidates that need more
+   * implementation effort, dependencies or validation.
+   */
+  const qualifiesAsNearTerm =
+    days <= options.nearTermMaxDays &&
+    score >= 55 &&
+    feasibility >= 45;
+
+  if (qualifiesAsNearTerm) {
     return "near_term";
   }
 
-  if (opportunity.priority === "low") {
-    return "strategic";
+  /*
+   * Medium-term work is usually valuable but requires more integration,
+   * process change, risk management or implementation effort.
+   */
+  if (
+    score >= 50 ||
+    impact >= 60 ||
+    hasDependencies(opportunity) ||
+    hasMeaningfulRisk(opportunity)
+  ) {
+    return "medium_term";
   }
 
-  return "medium_term";
+  return "strategic";
 }
 
-function phaseName(id: string): string {
+function phaseName(id: RoadmapBucket): string {
   switch (id) {
     case "quick_wins":
       return "Quick Wins";
@@ -46,17 +109,54 @@ function phaseName(id: string): string {
   }
 }
 
-function phaseObjective(id: string): string {
+function phaseObjective(id: RoadmapBucket): string {
   switch (id) {
     case "quick_wins":
-      return "Deliver high-value, low-complexity automations that demonstrate immediate value.";
+      return "Deliver high-value, low-risk automations that demonstrate measurable value quickly.";
+
     case "near_term":
-      return "Implement the next group of practical automations after the initial wins.";
+      return "Implement strong automation candidates that require modest integration, validation, or process preparation.";
+
     case "medium_term":
-      return "Address broader workflows that require more integration, testing, or process change.";
+      return "Address broader workflows that require deeper integration, testing, decision design, or process change.";
+
     default:
-      return "Plan larger or lower-priority transformations once the foundational automations are established.";
+      return "Plan larger, lower-readiness, higher-risk, or transformation-level opportunities once the foundations are established.";
   }
+}
+
+function phaseDependencies(
+  opportunities: AutomationOpportunity[]
+): string[] {
+  return [
+    ...new Set(
+      opportunities.flatMap(
+        (opportunity) => opportunity.dependencies
+      )
+    ),
+  ];
+}
+
+function sortOpportunities(
+  opportunities: AutomationOpportunity[]
+): AutomationOpportunity[] {
+  return [...opportunities].sort((a, b) => {
+    const scoreDifference =
+      b.automationScore - a.automationScore;
+
+    if (scoreDifference !== 0) {
+      return scoreDifference;
+    }
+
+    const impactDifference =
+      b.impactScore - a.impactScore;
+
+    if (impactDifference !== 0) {
+      return impactDifference;
+    }
+
+    return effectiveDays(a) - effectiveDays(b);
+  });
 }
 
 export function buildAutomationRoadmap(
@@ -64,58 +164,56 @@ export function buildAutomationRoadmap(
   options: RoadmapPlanningOptions = {}
 ): RoadmapPhase[] {
   const resolved: Required<RoadmapPlanningOptions> = {
-    quickWinMaxDays: options.quickWinMaxDays ?? 5,
-    nearTermMaxDays: options.nearTermMaxDays ?? 15,
+    quickWinMaxDays:
+      options.quickWinMaxDays ?? 5,
+
+    nearTermMaxDays:
+      options.nearTermMaxDays ?? 15,
   };
 
-  const phaseIds = [
-    "quick_wins",
-    "near_term",
-    "medium_term",
-    "strategic",
-  ];
-
-  const grouped = new Map<string, AutomationOpportunity[]>(
-    phaseIds.map((id) => [id, []])
+  const grouped = new Map<
+    RoadmapBucket,
+    AutomationOpportunity[]
+  >(
+    PHASE_IDS.map((id) => [id, []])
   );
 
   for (const opportunity of opportunities) {
-    const phase = phaseForOpportunity(opportunity, resolved);
+    const phase = phaseForOpportunity(
+      opportunity,
+      resolved
+    );
+
     grouped.get(phase)?.push(opportunity);
   }
 
   const phases: RoadmapPhase[] = [];
 
-  for (const phaseId of phaseIds) {
-    const items = grouped.get(phaseId) ?? [];
+  for (const phaseId of PHASE_IDS) {
+    const items = sortOpportunities(
+      grouped.get(phaseId) ?? []
+    );
 
     if (items.length === 0) {
       continue;
     }
 
-    items.sort(
-      (a, b) => b.automationScore - a.automationScore
-    );
-
     const estimatedDays = items.reduce(
-      (total, item) =>
-        total + (item.estimatedImplementationDays ?? 10),
+      (total, opportunity) =>
+        total + effectiveDays(opportunity),
       0
     );
-
-    const dependencies = [
-      ...new Set(
-        items.flatMap((item) => item.dependencies)
-      ),
-    ];
 
     phases.push({
       id: `roadmap_${phaseId}`,
       name: phaseName(phaseId),
       objective: phaseObjective(phaseId),
-      opportunityIds: items.map((item) => item.id),
+      opportunityIds: items.map(
+        (opportunity) => opportunity.id
+      ),
       estimatedDays,
-      dependencies,
+      dependencies:
+        phaseDependencies(items),
     });
   }
 
@@ -127,17 +225,41 @@ export function getRoadmapSummary(
 ) {
   return {
     phaseCount: phases.length,
+
     opportunityCount: phases.reduce(
       (total, phase) =>
         total + phase.opportunityIds.length,
       0
     ),
+
     estimatedDays: phases.reduce(
-      (total, phase) => total + phase.estimatedDays,
+      (total, phase) =>
+        total + phase.estimatedDays,
       0
     ),
+
     quickWins:
-      phases.find((phase) => phase.id === "roadmap_quick_wins")
-        ?.opportunityIds.length ?? 0,
+      phases.find(
+        (phase) =>
+          phase.id === "roadmap_quick_wins"
+      )?.opportunityIds.length ?? 0,
+
+    nearTerm:
+      phases.find(
+        (phase) =>
+          phase.id === "roadmap_near_term"
+      )?.opportunityIds.length ?? 0,
+
+    mediumTerm:
+      phases.find(
+        (phase) =>
+          phase.id === "roadmap_medium_term"
+      )?.opportunityIds.length ?? 0,
+
+    strategic:
+      phases.find(
+        (phase) =>
+          phase.id === "roadmap_strategic"
+      )?.opportunityIds.length ?? 0,
   };
 }

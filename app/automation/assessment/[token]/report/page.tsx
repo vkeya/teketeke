@@ -1,4 +1,4 @@
- "use client";
+"use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { AutomationReport } from "@/lib/automation/AutomationReportEngine";
@@ -237,6 +237,22 @@ export default function AutomationAssessmentReportPage({
 
   const { assessment, report } = data;
 
+  const startingPoint = [...opportunities].sort(
+    (a, b) => {
+      const aScore =
+        a.automationScore +
+        a.feasibilityScore -
+        a.riskScore;
+
+      const bScore =
+        b.automationScore +
+        b.feasibilityScore -
+        b.riskScore;
+
+      return bScore - aScore;
+    }
+  )[0];
+
   return (
     <main className="min-h-screen bg-[#050B14] px-5 py-8 text-white">
       <div className="mx-auto max-w-5xl">
@@ -316,6 +332,66 @@ export default function AutomationAssessmentReportPage({
               />
             </div>
           </div>
+        </section>
+
+        <section className="mt-6 rounded-2xl border border-[#19D3C5]/15 bg-[#0A1422] p-6">
+          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#6DE7DC]">
+            What Teketeke found
+          </p>
+
+          <h2 className="mt-2 text-xl font-semibold tracking-tight">
+            Your business, interpreted
+          </h2>
+
+          <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-300">
+            {report.executiveSummary}
+          </p>
+        </section>
+
+        <section className="mt-6 rounded-2xl border border-white/10 bg-[#0A1422] p-6">
+          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-600">
+            Current operating picture
+          </p>
+
+          <h2 className="mt-1 text-xl font-semibold">
+            What we understand about your operation
+          </h2>
+
+          <div className="mt-5 grid gap-2 sm:grid-cols-3">
+            <Metric
+              label="Processes mapped"
+              value={report.currentState.processCount}
+            />
+
+            <Metric
+              label="Systems involved"
+              value={report.currentState.systemCount}
+            />
+
+            <Metric
+              label="People involved"
+              value={report.currentState.peopleCount}
+            />
+          </div>
+
+          {report.currentState.painPoints.length > 0 && (
+            <div className="mt-4 rounded-xl border border-white/8 bg-[#050B14] p-4">
+              <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-slate-600">
+                Operational friction
+              </p>
+
+              <div className="mt-3 flex flex-wrap gap-2">
+                {report.currentState.painPoints.map((painPoint) => (
+                  <span
+                    key={painPoint}
+                    className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs text-slate-300"
+                  >
+                    {painPoint}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </section>
 
         <section className="mt-6 rounded-2xl border border-white/10 bg-[#0A1422] p-6">
@@ -498,6 +574,16 @@ export default function AutomationAssessmentReportPage({
                     <p className="mt-2 text-sm text-slate-400">
                       {opportunity.proposedAutomation}
                     </p>
+
+                    <div className="mt-4 rounded-xl border border-[#19D3C5]/10 bg-[#19D3C5]/[0.03] p-4">
+                      <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-[#6DE7DC]">
+                        Why this matters
+                      </p>
+
+                      <p className="mt-2 text-sm leading-6 text-slate-300">
+                        {opportunity.rationale}
+                      </p>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:w-[440px]">
@@ -553,14 +639,18 @@ export default function AutomationAssessmentReportPage({
                   </div>
                   <div>
                     <p className="text-[9px] uppercase tracking-[0.1em] text-slate-600">
-                      Implementation
+                      Estimated effort
                     </p>
                     <p className="mt-1 text-sm font-semibold text-slate-200">
-                      {calculatedImplementationCost !==
+                      {opportunity.estimatedImplementationDays !==
                       undefined
-                        ? formatCurrency(
-                            calculatedImplementationCost
-                          )
+                        ? `${formatNumber(
+                            opportunity.estimatedImplementationDays
+                          )} ${
+                            opportunity.estimatedImplementationDays === 1
+                              ? "day"
+                              : "days"
+                          }`
                         : "—"}
                     </p>
                   </div>
@@ -569,6 +659,189 @@ export default function AutomationAssessmentReportPage({
             ))}
           </div>
         </section>
+
+        {startingPoint && (
+          <section className="mt-8 rounded-2xl border border-[#19D3C5]/20 bg-[#0A1422] p-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#6DE7DC]">
+                  Recommended starting point
+                </p>
+
+                <h2 className="mt-2 text-2xl font-semibold tracking-tight">
+                  Start with {startingPoint.title}
+                </h2>
+
+                <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-300">
+                  This opportunity currently offers the strongest combination
+                  of automation potential, feasibility and manageable risk.
+                </p>
+              </div>
+
+              <div className="shrink-0 rounded-xl border border-[#19D3C5]/20 bg-[#19D3C5]/[0.04] px-4 py-3">
+                <p className="text-[9px] font-bold uppercase tracking-[0.1em] text-[#6DE7DC]">
+                  Automation score
+                </p>
+
+                <p className="mt-1 text-2xl font-semibold text-white">
+                  {startingPoint.automationScore}
+                  <span className="text-sm font-normal text-slate-500">
+                    /100
+                  </span>
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-5 grid gap-3 sm:grid-cols-3">
+              <Metric
+                label="Impact"
+                value={startingPoint.impactScore}
+                accent
+              />
+
+              <Metric
+                label="Feasibility"
+                value={startingPoint.feasibilityScore}
+              />
+
+              <Metric
+                label="Risk"
+                value={startingPoint.riskScore}
+              />
+            </div>
+
+            <div className="mt-4 rounded-xl border border-white/8 bg-[#050B14] p-4">
+              <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-slate-600">
+                Why Teketeke recommends this first
+              </p>
+
+              <p className="mt-2 text-sm leading-6 text-slate-300">
+                {startingPoint.rationale}
+              </p>
+            </div>
+          </section>
+        )}
+
+        {report.roadmap.length > 0 && (
+          <section className="mt-8">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#6DE7DC]">
+                Automation roadmap
+              </p>
+
+              <h2 className="mt-1 text-xl font-semibold">
+                What to do next
+              </h2>
+
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+                Teketeke has organised the identified opportunities by value,
+                feasibility, risk and implementation effort.
+              </p>
+            </div>
+
+            <div className="mt-4 grid gap-3">
+              {report.roadmap.map((phase, index) => (
+                <article
+                  key={phase.id}
+                  className="rounded-2xl border border-white/10 bg-[#0A1422] p-5"
+                >
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-slate-600">
+                        Phase {index + 1}
+                      </p>
+
+                      <h3 className="mt-1 text-base font-semibold">
+                        {phase.name}
+                      </h3>
+
+                      <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
+                        {phase.objective}
+                      </p>
+                    </div>
+
+                    <div className="shrink-0 rounded-xl border border-white/8 bg-[#050B14] px-4 py-3">
+                      <p className="text-[9px] uppercase tracking-[0.1em] text-slate-600">
+                        Estimated effort
+                      </p>
+
+                      <p className="mt-1 text-sm font-semibold text-slate-200">
+                        {formatNumber(phase.estimatedDays)} days
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 border-t border-white/6 pt-4">
+                    <p className="text-[9px] font-bold uppercase tracking-[0.1em] text-slate-600">
+                      Opportunities
+                    </p>
+
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {phase.opportunityIds.map((opportunityId) => {
+                        const opportunity = opportunities.find(
+                          (item) => item.id === opportunityId
+                        );
+
+                        return (
+                          <span
+                            key={opportunityId}
+                            className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs text-slate-300"
+                          >
+                            {opportunity?.title ?? opportunityId}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {phase.dependencies.length > 0 && (
+                    <div className="mt-4 border-t border-white/6 pt-4">
+                      <p className="text-[9px] font-bold uppercase tracking-[0.1em] text-slate-600">
+                        Dependencies
+                      </p>
+
+                      <ul className="mt-2 space-y-1">
+                        {phase.dependencies.map((dependency) => (
+                          <li
+                            key={dependency}
+                            className="text-xs leading-5 text-slate-500"
+                          >
+                            {dependency}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {report.recommendedNextSteps.length > 0 && (
+          <section className="mt-6 rounded-2xl border border-white/10 bg-[#0A1422] p-6">
+            <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-600">
+              Recommended next steps
+            </p>
+
+            <div className="mt-4 space-y-2">
+              {report.recommendedNextSteps.map((step, index) => (
+                <div
+                  key={`${index}-${step}`}
+                  className="flex gap-3 rounded-xl border border-white/8 bg-[#050B14] p-4"
+                >
+                  <span className="text-xs font-bold text-[#6DE7DC]">
+                    {index + 1}
+                  </span>
+
+                  <p className="text-sm leading-6 text-slate-300">
+                    {step}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         <footer className="mt-8 border-t border-white/10 py-5 text-[10px] text-slate-600">
           {assessment.organization.name} · Automation Intelligence Assessment

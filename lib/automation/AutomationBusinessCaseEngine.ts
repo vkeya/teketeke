@@ -6,9 +6,8 @@ import type {
 /**
  * Business-case inputs supplied by the user or by a trusted assessment source.
  *
- * No financial assumptions are hidden in the engine. If an input is not
- * supplied, the corresponding financial result remains undefined rather
- * than falling back to a hardcoded value.
+ * Financial assumptions are never invented by the engine.
+ * Missing inputs leave the corresponding financial result undefined.
  */
 export type BusinessCaseInputs = {
   hourlyValue?: number;
@@ -23,27 +22,54 @@ function annualHoursSaved(
   const weeklyHours =
     opportunity.estimatedWeeklyHoursSaved ?? 0;
 
+  if (
+    !Number.isFinite(weeklyHours) ||
+    weeklyHours <= 0
+  ) {
+    return 0;
+  }
+
   return weeklyHours * 52;
 }
 
-function resolveImplementationCost(
-  opportunity: AutomationOpportunity,
-  inputs?: BusinessCaseInputs
-): number | undefined {
-  if (
-    opportunity.estimatedImplementationCost !==
-    undefined
-  ) {
-    return opportunity.estimatedImplementationCost;
-  }
+function calculateAnnualHoursSaved(
+  opportunities: AutomationOpportunity[]
+): number {
+  return opportunities.reduce(
+    (total, opportunity) =>
+      total + annualHoursSaved(opportunity),
+    0
+  );
+}
 
-  if (inputs?.implementationCost !== undefined) {
+function resolveTotalImplementationCost(
+  opportunities: AutomationOpportunity[],
+  inputs: BusinessCaseInputs
+): number | undefined {
+  /*
+   * A directly supplied implementation cost is treated as the
+   * total project cost, not a cost that should be repeated for
+   * every opportunity.
+   */
+  if (
+    inputs.implementationCost !== undefined &&
+    Number.isFinite(inputs.implementationCost) &&
+    inputs.implementationCost >= 0
+  ) {
     return inputs.implementationCost;
   }
 
+  /*
+   * If no total cost was supplied, calculate one from total
+   * implementation days × rate/day.
+   */
   if (
-    inputs?.implementationDays !== undefined &&
-    inputs?.implementationRatePerDay !== undefined
+    inputs.implementationDays !== undefined &&
+    inputs.implementationRatePerDay !== undefined &&
+    Number.isFinite(inputs.implementationDays) &&
+    Number.isFinite(inputs.implementationRatePerDay) &&
+    inputs.implementationDays >= 0 &&
+    inputs.implementationRatePerDay >= 0
   ) {
     return (
       inputs.implementationDays *
@@ -51,7 +77,35 @@ function resolveImplementationCost(
     );
   }
 
-  return undefined;
+  /*
+   * Fall back to opportunity-level implementation costs only
+   * when every opportunity has a known cost.
+   */
+  if (opportunities.length === 0) {
+    return undefined;
+  }
+
+  const costs = opportunities.map(
+    (opportunity) =>
+      opportunity.estimatedImplementationCost
+  );
+
+  const allKnown = costs.every(
+    (cost) =>
+      cost !== undefined &&
+      Number.isFinite(cost) &&
+      cost >= 0
+  );
+
+  if (!allKnown) {
+    return undefined;
+  }
+
+  return costs.reduce<number>(
+    (total, cost) =>
+      total + (cost ?? 0),
+    0
+  );
 }
 
 function calculateAnnualValue(
@@ -69,76 +123,53 @@ function calculateAnnualValue(
   return annualHours * hourlyValue;
 }
 
-export function buildAutomationBusinessCase(
-  opportunities: AutomationOpportunity[],
-  inputs: BusinessCaseInputs = {}
-): AutomationBusinessCase {
-  const currentAnnualHours =
-    opportunities.reduce(
-      (total, opportunity) =>
-        total + annualHoursSaved(opportunity),
-      0
-    );
-
-  const estimatedAnnualHoursSaved =
-    currentAnnualHours;
-
-  const estimatedAnnualValue =
-    calculateAnnualValue(
-      estimatedAnnualHoursSaved,
-      inputs.hourlyValue
-    );
-
-  const opportunityCosts = opportunities.map(
-    (opportunity) =>
-      resolveImplementationCost(
-        opportunity,
-        inputs
-      )
-  );
-
-  const hasCompleteImplementationCosts =
-    opportunityCosts.every(
-      (cost) =>
-        cost !== undefined &&
-        Number.isFinite(cost) &&
-        cost >= 0
-    );
-
-  let estimatedImplementationCost: number | undefined;
-
-  if (hasCompleteImplementationCosts) {
-    let totalImplementationCost = 0;
-
-    for (const cost of opportunityCosts) {
-      if (cost !== undefined) {
-        totalImplementationCost += cost;
-      }
-    }
-
-    estimatedImplementationCost =
-      totalImplementationCost;
+function calculatePaybackMonths(
+  annualValue?: number,
+  implementationCost?: number
+): number | undefined {
+  if (
+    annualValue === undefined ||
+    annualValue <= 0 ||
+    implementationCost === undefined ||
+    implementationCost < 0
+  ) {
+    return undefined;
   }
 
-  const estimatedPaybackMonths =
-    estimatedAnnualValue !== undefined &&
-    estimatedAnnualValue > 0 &&
-    estimatedImplementationCost !== undefined
-      ? (estimatedImplementationCost /
-          estimatedAnnualValue) *
-        12
-      : undefined;
+  if (implementationCost === 0) {
+    return 0;
+  }
 
-  const estimatedYearOneRoiPct =
-    estimatedAnnualValue !== undefined &&
-    estimatedImplementationCost !== undefined &&
-    estimatedImplementationCost > 0
-      ? ((estimatedAnnualValue -
-          estimatedImplementationCost) /
-          estimatedImplementationCost) *
-        100
-      : undefined;
+  return (
+    (implementationCost / annualValue) *
+    12
+  );
+}
 
+function calculateRoiPct(
+  annualValue?: number,
+  implementationCost?: number
+): number | undefined {
+  if (
+    annualValue === undefined ||
+    implementationCost === undefined ||
+    implementationCost <= 0
+  ) {
+    return undefined;
+  }
+
+  return (
+    ((annualValue - implementationCost) /
+      implementationCost) *
+    100
+  );
+}
+
+function buildAssumptions(
+  inputs: BusinessCaseInputs,
+  annualHoursSavedValue: number,
+  implementationCost?: number
+): string[] {
   const assumptions: string[] = [];
 
   if (inputs.hourlyValue !== undefined) {
@@ -149,7 +180,7 @@ export function buildAutomationBusinessCase(
 
   if (inputs.implementationCost !== undefined) {
     assumptions.push(
-      `Implementation cost entered: ${inputs.implementationCost}.`
+      `Total implementation cost entered: ${inputs.implementationCost}.`
     );
   } else if (
     inputs.implementationDays !== undefined &&
@@ -159,28 +190,95 @@ export function buildAutomationBusinessCase(
     assumptions.push(
       `Implementation: ${inputs.implementationDays} days at ${inputs.implementationRatePerDay} per day.`
     );
+  } else if (
+    implementationCost !== undefined
+  ) {
+    assumptions.push(
+      "Implementation cost is based on opportunity-level estimates."
+    );
   }
 
-  assumptions.push(
-    "Time savings are estimates based on the discovery information available."
-  );
+  if (annualHoursSavedValue > 0) {
+    assumptions.push(
+      "Time savings are estimates based on the discovery information available."
+    );
+  } else {
+    assumptions.push(
+      "No measurable time recovery has been estimated from the current discovery data."
+    );
+  }
 
   if (
-    estimatedAnnualValue !== undefined ||
-    estimatedImplementationCost !== undefined
+    implementationCost !== undefined ||
+    inputs.hourlyValue !== undefined
   ) {
     assumptions.push(
       "Financial estimates should be validated with the decision maker before implementation."
     );
   }
 
+  return assumptions;
+}
+
+export function buildAutomationBusinessCase(
+  opportunities: AutomationOpportunity[],
+  inputs: BusinessCaseInputs = {}
+): AutomationBusinessCase {
+  const estimatedAnnualHoursSaved =
+    calculateAnnualHoursSaved(
+      opportunities
+    );
+
+  const estimatedAnnualValue =
+    calculateAnnualValue(
+      estimatedAnnualHoursSaved,
+      inputs.hourlyValue
+    );
+
+  const estimatedImplementationCost =
+    resolveTotalImplementationCost(
+      opportunities,
+      inputs
+    );
+
+  const estimatedPaybackMonths =
+    calculatePaybackMonths(
+      estimatedAnnualValue,
+      estimatedImplementationCost
+    );
+
+  const estimatedYearOneRoiPct =
+    calculateRoiPct(
+      estimatedAnnualValue,
+      estimatedImplementationCost
+    );
+
+  const assumptions =
+    buildAssumptions(
+      inputs,
+      estimatedAnnualHoursSaved,
+      estimatedImplementationCost
+    );
+
   return {
-    currentAnnualHours,
+    /*
+     * Keep currentAnnualHours for backwards compatibility.
+     * It represents the currently estimated annual capacity
+     * associated with the discovered automation opportunities.
+     */
+    currentAnnualHours:
+      estimatedAnnualHoursSaved,
+
     estimatedAnnualHoursSaved,
+
     estimatedAnnualValue,
+
     estimatedImplementationCost,
+
     estimatedPaybackMonths,
+
     estimatedYearOneRoiPct,
+
     assumptions,
   };
 }
@@ -189,34 +287,35 @@ export function buildOpportunityBusinessCase(
   opportunity: AutomationOpportunity,
   inputs: BusinessCaseInputs = {}
 ) {
-  const annualHours = annualHoursSaved(opportunity);
+  const annualHours =
+    annualHoursSaved(opportunity);
 
-  const annualValue = calculateAnnualValue(
-    annualHours,
-    inputs.hourlyValue
-  );
-
-  const implementationCost =
-    resolveImplementationCost(
-      opportunity,
-      inputs
+  const annualValue =
+    calculateAnnualValue(
+      annualHours,
+      inputs.hourlyValue
     );
 
+  const implementationCost =
+    inputs.implementationCost ??
+    (inputs.implementationDays !== undefined &&
+    inputs.implementationRatePerDay !==
+      undefined
+      ? inputs.implementationDays *
+        inputs.implementationRatePerDay
+      : opportunity.estimatedImplementationCost);
+
   const paybackMonths =
-    annualValue !== undefined &&
-    annualValue > 0 &&
-    implementationCost !== undefined
-      ? (implementationCost / annualValue) * 12
-      : undefined;
+    calculatePaybackMonths(
+      annualValue,
+      implementationCost
+    );
 
   const roiPct =
-    annualValue !== undefined &&
-    implementationCost !== undefined &&
-    implementationCost > 0
-      ? ((annualValue - implementationCost) /
-          implementationCost) *
-        100
-      : undefined;
+    calculateRoiPct(
+      annualValue,
+      implementationCost
+    );
 
   return {
     annualHoursSaved: annualHours,
