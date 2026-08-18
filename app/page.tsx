@@ -88,6 +88,13 @@ export default function HomePage() {
           >
             Approach
           </a>
+
+          <Link
+            href="/automation/assessment/new"
+            className="transition hover:text-white"
+          >
+            Automation
+          </Link>
         </div>
 
         <Link
@@ -456,6 +463,74 @@ export default function HomePage() {
 
       </section>
 
+      {/* AUTOMATION INTELLIGENCE */}
+
+      <section
+        id="automation"
+        className="relative z-10 border-y border-white/5 bg-[#07111F]"
+      >
+        <div className="mx-auto max-w-7xl px-6 py-24 lg:px-8">
+          <div className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#19D3C5]">
+                Automation Intelligence
+              </p>
+
+              <h2 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
+                Find the work your business
+                <br />
+                should stop doing manually.
+              </h2>
+
+              <p className="mt-5 max-w-xl text-base leading-7 text-slate-400">
+                Teketeke maps how your teams work, identifies repetitive
+                processes and automation opportunities, and helps you
+                understand the potential time and financial impact before
+                you invest.
+              </p>
+
+              <Link
+                href="/automation/assessment/new"
+                className="mt-8 inline-flex items-center gap-3 rounded-xl bg-[#19D3C5] px-5 py-3.5 text-sm font-bold text-[#07111F] transition hover:bg-[#6DE7DC]"
+              >
+                Start Automation Assessment
+                <span>→</span>
+              </Link>
+
+              <p className="mt-4 text-xs text-slate-600">
+                No technical knowledge required.
+              </p>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              {[
+                ["01", "Discover", "Map the work that consumes time."],
+                ["02", "Identify", "Find practical automation opportunities."],
+                ["03", "Quantify", "Estimate time and financial impact."],
+                ["04", "Prioritize", "Know what to automate first."],
+              ].map(([number, title, description]) => (
+                <div
+                  key={number}
+                  className="rounded-2xl border border-white/7 bg-[#0D1B2A] p-6 transition hover:-translate-y-1 hover:border-[#19D3C5]/20"
+                >
+                  <span className="text-xs font-bold tracking-[0.15em] text-[#19D3C5]">
+                    {number}
+                  </span>
+
+                  <h3 className="mt-8 text-lg font-semibold">
+                    {title}
+                  </h3>
+
+                  <p className="mt-2 text-sm leading-6 text-slate-500">
+                    {description}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* SIGNALS */}
 
       <section
@@ -584,7 +659,7 @@ export default function HomePage() {
           </div>
 
           <p className="text-xs text-slate-600">
-            AI-powered business intelligence.
+            AI-powered business & automation intelligence.
           </p>
 
         </div>
