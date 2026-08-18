@@ -139,6 +139,7 @@ export type AutomationBusinessCaseInputs = {
 export type ImplementationTask = {
   id: string;
   title: string;
+  description?: string;
   status: "pending" | "in_progress" | "blocked" | "completed";
   owner?: string;
   dueDate?: string;

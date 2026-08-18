@@ -1,3 +1,4 @@
+
 import type {
   AutomationAssessment,
   AutomationImplementation,
@@ -15,11 +16,13 @@ function createTask(
   title: string,
   owner?: string,
   dueDate?: string,
-  dependencyIds: string[] = []
+  dependencyIds: string[] = [],
+  description?: string
 ): ImplementationTask {
   return {
     id,
     title,
+    description,
     status: "pending",
     owner,
     dueDate,
@@ -47,7 +50,10 @@ export function buildImplementationPlan(
     createTask(
       "implementation_requirements",
       "Confirm implementation requirements, scope, systems, and success criteria.",
-      options.defaultOwner
+      options.defaultOwner,
+      undefined,
+      [],
+      "Validate the approved automation scope, the process owner, the systems involved, the expected outcome, and the baseline that will be used to measure success."
     )
   );
 
@@ -57,7 +63,8 @@ export function buildImplementationPlan(
       "Confirm access to required systems, data, credentials, and integration points.",
       options.defaultOwner,
       undefined,
-      ["implementation_requirements"]
+      ["implementation_requirements"],
+      "Confirm the people, credentials, data sources, APIs, permissions, and integration points required to safely build and test the approved automation."
     )
   );
 
@@ -73,7 +80,8 @@ export function buildImplementationPlan(
         `Design automation: ${opportunity.title}`,
         options.defaultOwner,
         undefined,
-        ["implementation_requirements"]
+        ["implementation_requirements"],
+        `Translate the approved opportunity into a practical automation design. Proposed automation: ${opportunity.proposedAutomation}. Validate the workflow, inputs, outputs, exceptions, human decision points, and success criteria before build begins.`
       )
     );
 
@@ -83,7 +91,8 @@ export function buildImplementationPlan(
         `Build and configure automation: ${opportunity.title}`,
         options.defaultOwner,
         undefined,
-        [`${safeId}_design`, "implementation_access"]
+        [`${safeId}_design`, "implementation_access"],
+        `Build and configure the approved automation for ${opportunity.title}. Implement the agreed workflow, integrations, controls, notifications, and exception handling from the approved design.`
       )
     );
 
@@ -93,7 +102,8 @@ export function buildImplementationPlan(
         `Test automation and exception handling: ${opportunity.title}`,
         options.defaultOwner,
         undefined,
-        [`${safeId}_build`]
+        [`${safeId}_build`],
+        `Validate ${opportunity.title} against normal and exception scenarios. Confirm expected outputs, failure handling, human handoffs, permissions, and readiness for user acceptance testing.`
       )
     );
   }
@@ -110,7 +120,8 @@ export function buildImplementationPlan(
             /[^a-zA-Z0-9_-]/g,
             "_"
           )}_test`
-      )
+      ),
+      "Validate the complete automation with the process owner using representative business scenarios. Capture acceptance issues and resolve them before production release."
     )
   );
 
@@ -120,7 +131,8 @@ export function buildImplementationPlan(
       "Deploy approved automation and confirm production readiness.",
       options.defaultOwner,
       undefined,
-      ["implementation_uat"]
+      ["implementation_uat"],
+      "Move the approved automation into production, confirm monitoring and rollback controls, communicate the operational change, and verify that the process is ready for live use."
     )
   );
 
@@ -130,7 +142,8 @@ export function buildImplementationPlan(
       "Capture baseline and begin post-implementation value measurement.",
       options.defaultOwner,
       undefined,
-      ["implementation_go_live"]
+      ["implementation_go_live"],
+      "Record the agreed baseline and begin tracking the measures that will determine whether the automation delivered the expected time, cost, quality, or capacity improvement."
     )
   );
 
